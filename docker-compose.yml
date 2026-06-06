@@ -1,7 +1,7 @@
 x-logging: &default-logging
   driver: loki
   options:
-    loki-url: 'http://localhost:3100/api/prom/push'
+    loki-url: '${LOKI_URL:-http://localhost:3100/api/prom/push}'
     loki-pipeline-stages: |
       - multiline:
           firstline: '^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}'
@@ -10,15 +10,11 @@ x-logging: &default-logging
           expression: '^(?P<time>\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2},d{3}) (?P<message>(?s:.*))$$'
 
 services:
-
   loki:
     image: grafana/loki:3.0.0
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
-    networks:
-      - observability-net
-      - fastid-net
 
   prometheus:
     image: prom/prometheus:v2.51.2
@@ -27,14 +23,11 @@ services:
     volumes:
       - ./obs/prometheus:/workspace
     command:
-      - --config.file=/workspace/prometheus.yml
+      - --config.file=/workspace/${PROMETHEUS_CONFIG:-prometheus.yml}
       - --enable-feature=exemplar-storage
+    logging: *default-logging
     depends_on:
       - loki
-    logging: *default-logging
-    networks:
-      - observability-net
-      - fastid-net
 
   tempo:
     image: grafana/tempo:2.4.1
@@ -42,12 +35,9 @@ services:
     ports:
       - "4317:4317"
       - "4318:4318"
+    logging: *default-logging
     depends_on:
       - loki
-    logging: *default-logging
-    networks:
-      - observability-net
-      - fastid-net
 
   grafana:
     image: grafana/grafana:10.4.2
@@ -57,18 +47,13 @@ services:
       - ./obs/grafana/:/etc/grafana/provisioning/datasources
       - ./obs/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
       - ./obs/dashboards:/etc/grafana/dashboards
+    logging: *default-logging
     depends_on:
       - loki
       - tempo
       - prometheus
-    logging: *default-logging
-    networks:
-      - observability-net
-      - fastid-net
 
 networks:
-  observability-net:
-    name: observability-net
-  fastid-net:
-    name: fastid-net
+  default:
+    name: observability_net
     external: true

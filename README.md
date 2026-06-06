@@ -25,6 +25,7 @@ Inspired by [FastAPI observability](https://github.com/blueswen/fastapi-observab
     ```
 2. Set microservice URLs
     ```bash
+    cp ./obs/prometheus/prometheus-example.yml ./obs/prometheus/prometheus.yml
     nano ./obs/prometheus/prometheus.yml
     ```
 3. Start the services

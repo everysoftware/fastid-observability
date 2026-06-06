@@ -1,6 +1,6 @@
 .PHONY: up
 up:
-	docker-compose up --build -d
+	docker-compose up --build -d --wait --remove-orphans
 
 .PHONY: stop
 stop:
@@ -9,3 +9,7 @@ stop:
 .PHONY: restart
 restart:
 	docker-compose restart
+
+.PHONY: down
+down:
+	docker-compose down
